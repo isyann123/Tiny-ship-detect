@@ -631,7 +631,7 @@ def torch_safe_load(weight):
                 "ultralytics.yolo.data": "ultralytics.data",
             }
         ):  # for legacy 8.0 Classify and Pose models
-            return torch.load(file, map_location="cpu"), file  # load
+            return torch.load(file, map_location="cpu",weights_only=False), file  # load
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -697,7 +697,9 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
 def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     """Loads a single model weights."""
+    ckpt = torch.load(weight, map_location="cpu", weights_only=False)
     ckpt, weight = torch_safe_load(weight)  # load ckpt
+    ckpt = torch.load(weight, map_location="cpu", weights_only=False)
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
     model = (ckpt.get("ema") or ckpt["model"]).to(device).float()  # FP32 model
 
